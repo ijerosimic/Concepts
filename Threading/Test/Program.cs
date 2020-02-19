@@ -17,7 +17,7 @@ namespace Test
 
             for (int i = 0; i < 10; i++)
             {
-                threadSafe.Add(Task.Run(() => c.IncrementWithLock()));
+                threadSafe.Add(c.IncrementWithLockAndUnlock());
             }
 
             Console.WriteLine("THREAD SAFE \n");
@@ -25,7 +25,7 @@ namespace Test
 
             for (int i = 0; i < 10; i++)
             {
-                threadUnsafe.Add(Task.Run(() => c.IncrementWithoutLock()));
+                threadUnsafe.Add(c.IncrementWithoutLock());
             }
             
             Console.WriteLine("\nTHREAD UNSAFE \n");
@@ -33,7 +33,7 @@ namespace Test
 
             for (int i = 0; i < 10; i++)
             {
-                deadlocked.Add(Task.Run(() => c.IncrementWithoutUnlock()));
+                deadlocked.Add(c.IncrementWithoutUnlock());
             }
 
             Console.WriteLine(" \nDEADLOCKED \n");
@@ -48,14 +48,14 @@ namespace Test
         int z = 0;
         readonly object locker = new object();
 
-        public async Task IncrementWithLock()
+        public async Task IncrementWithLockAndUnlock()
         {
             try
             {
                 await Task.Delay(1000);
                 Monitor.Enter(locker);
                 i += 1;
-                Console.WriteLine("Incremented i. Current value: {0}", i);
+                Console.WriteLine("Thread ID {0} incremented i. Current value: {1}", Thread.CurrentThread.ManagedThreadId, i);
             }
             finally
             {
@@ -67,7 +67,7 @@ namespace Test
         {
             await Task.Delay(1000);
             y += 1;
-            Console.WriteLine("Incremented i. Current value: {0}", y);
+            Console.WriteLine("Thread ID {0} incremented i. Current value: {1}", Thread.CurrentThread.ManagedThreadId, y);
         }
 
         public async Task IncrementWithoutUnlock()
@@ -75,7 +75,7 @@ namespace Test
             await Task.Delay(1000);
             Monitor.Enter(locker);
             z += 1;
-            Console.WriteLine("Incremented i. Current value: {0}", z);
+            Console.WriteLine("Thread ID {0} incremented i. Current value: {1}", Thread.CurrentThread.ManagedThreadId, z);
         }
     }
 }
